@@ -1,49 +1,90 @@
+start = ['<s>']
+stop = ['</s>']
+
 def readData():
-    data = ['There is a big car','I buy a car','They buy the new car']
-    dat=[]
-    print(data[0])
-    
+    s = ['There is a big car', 'I buy a car', 'They buy the new car']  #training data
+
+    a = (map(lambda x: x.lower(), s))     # Convert words to lowercase letters
+    data = list(a)
+    dataList = []
+
     for i in range(len(data)):
-        start = ['<s>']
-        dat=dat+ start
+        dataList = dataList + start
         for word in data[i].split():
-            dat.append(word)
-        stop = ['</s>']
-        dat = dat + stop
-    print(dat)
-    return dat
+            dataList.append(word)
+        dataList = dataList + stop
+
+    return dataList
+
 
 def createBigram(data):
-   listOfBigrams = []
-   bigramCounts = {}
-   unigramCounts = {}
+    bigramList = []                # List of bigrams
+    bigramCount = {}               # count of bigrams in training data
+    unigramCount = {}              # count of each unigram in trainig data
 
-   for i in range(len(data)-1):
-      if i < len(data) - 1:
+    for j in range(len(data) - 1):
+        if j < len(data) - 1:
 
-         listOfBigrams.append((data[i], data[i + 1]))
+            bigramList.append((data[j], data[j + 1]))
 
-         if (data[i], data[i+1]) in bigramCounts:
-            bigramCounts[(data[i], data[i + 1])] += 1
-         else:
-            bigramCounts[(data[i], data[i + 1])] = 1
+            if (data[j], data[j + 1]) in bigramCount:
+                bigramCount[(data[j], data[j + 1])] += 1
+            else:
+                bigramCount[(data[j], data[j + 1])] = 1
 
-      if data[i] in unigramCounts:
-         unigramCounts[data[i]] += 1
-      else:
-         unigramCounts[data[i]] = 1
-   return listOfBigrams, unigramCounts, bigramCounts
+        if data[j] in unigramCount:
+            unigramCount[data[j]] += 1
+        else:
+            unigramCount[data[j]] = 1
+    return bigramList, unigramCount, bigramCount
 
-def calcBigramProb(listOfBigrams, unigramCounts, bigramCounts):
+
+def calcBigramProb(listOfBigrams, unigramCounts, bigramCounts):       # Calculatae bigram probability of each pair
     listOfProb = {}
     for bigram in listOfBigrams:
         word1 = bigram[0]
-        listOfProb[bigram] = (bigramCounts.get(bigram))/(unigramCounts.get(word1))
+        listOfProb[bigram] = (bigramCounts.get(bigram)) / (unigramCounts.get(word1))
     return listOfProb
-    
+
+
+
 if __name__ == '__main__':
     data = readData()
     listOfBigrams, unigramCounts, bigramCounts = createBigram(data)
+
+    inputList = input("Enter Your sentence Which you want to predict \n")
+
+    bigramProb = calcBigramProb(listOfBigrams, unigramCounts, bigramCounts)
+
+    print("\n Bigrams along with their probability ")
+    print(bigramProb)
+
+    inputListSplit = []
+    inputListSplit += start
+    splt = inputList.split()
+    spltSimpleLetter = []
+
+    for m in range(len(splt)):      # Convert words to lowercase letters
+        k = splt[m].lower()
+        spltSimpleLetter.append(k)
+    inputListSplit = inputListSplit + spltSimpleLetter + stop
+    outputProb1 = 1
+    bilist = []
+    bigrm = []
+
+    for k in range(len(inputListSplit) - 1):
+        if k < len(inputListSplit) - 1:
+            bilist.append((inputListSplit[k], inputListSplit[k + 1]))
+
+    print("\n The bigrams in given sentence are ")
+    print(bilist)
+    for k in range(len(bilist)):
+        if bilist[k] in bigramProb:
+
+            outputProb1 *= bigramProb[bilist[k]]
+        else:
+
+            outputProb1 *= 0
 
     print("\n All the possible Bigrams are ")
     print(listOfBigrams)
@@ -54,35 +95,4 @@ if __name__ == '__main__':
     print("\n Unigrams along with their frequency ")
     print(unigramCounts)
 
-    bigramProb = calcBigramProb(listOfBigrams, unigramCounts, bigramCounts)
-
-    print("\n Bigrams along with their probability ")
-    print(bigramProb)
-    inputList="I buy a car"
-    splt1 = []
-    start = ['<s>']
-    splt1 = splt1 +start
-    splt2 = []
-    splt2=inputList.split()
-    splt = splt1 +splt2
-    stop = ['</s>']
-    splt = splt + stop
-    outputProb1 = 1
-    bilist=[]
-    bigrm=[]
-
-    for i in range(len(splt) - 1):
-        if i < len(splt) - 1:
-
-            bilist.append((splt[i], splt[i + 1]))
-
-    print("\n The bigrams in given sentence are ")
-    print(bilist)
-    for i in range(len(bilist)):
-        if bilist[i] in bigramProb:
-
-            outputProb1 *= bigramProb[bilist[i]]
-        else:
-
-            outputProb1 *= 0
-    print('\n' + 'Probablility of sentence \"This is my cat\" = ' + str(outputProb1))
+    print('\n' + f'Probablility of sentence {inputList} = ' + str(outputProb1))
